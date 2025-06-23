@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Rocklist.Data;
 
@@ -8,20 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddDbContext<RocklistDbContext>(options =>
-{
-    options.UseSqlite("Data Source=rocklist.db");
-    options.EnableSensitiveDataLogging();
-    options.EnableDetailedErrors();
-    options.LogTo(Console.WriteLine, LogLevel.Debug);
+var sqliteConnection = new SqliteConnection("Data Source=:memory:");
+sqliteConnection.Open();
+builder.Services.AddDbContext<RocklistDbContext>(options => {
+	options.UseSqlite(sqliteConnection);
+	options.EnableSensitiveDataLogging();
+	options.EnableDetailedErrors();
+	options.LogTo(Console.WriteLine, LogLevel.Information);
 });
-
-var library = Library.FromPath(@"D:\Libraries\Music\");
-builder.Services.AddSingleton(library);
-
-foreach (var artist in library.Artists) Console.WriteLine(artist);
-foreach (var album in library.Albums) Console.WriteLine(album);
-foreach (var track in library.Tracks) Console.WriteLine(track);
 
 var app = builder.Build();
 

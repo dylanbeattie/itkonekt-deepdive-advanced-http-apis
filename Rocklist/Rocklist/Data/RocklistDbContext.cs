@@ -3,48 +3,32 @@ using Rocklist.Data.Entities;
 
 namespace Rocklist.Data;
 
-public class RocklistDbContext(DbContextOptions<RocklistDbContext> options, Library library) : DbContext(options) {
+public class RocklistDbContext(DbContextOptions<RocklistDbContext> options) : DbContext(options) {
 	public DbSet<Artist> Artists { get; set; }
 	public DbSet<Album> Albums { get; set; }
 	public DbSet<Track> Tracks { get; set; }
 
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
-	{
-		// Artist: Name is the key
-		modelBuilder.Entity<Artist>()
-			.HasKey(a => a.Name);
-		modelBuilder.Entity<Artist>()
-			.HasMany(a => a.Albums)
-			.WithOne(a => a.Artist)
-			.HasForeignKey(a => a.ArtistName);
-
-		// Album: composite key (ArtistName, Title)
-		modelBuilder.Entity<Album>()
-			.HasKey(a => new { a.ArtistName, a.Title });
-		modelBuilder.Entity<Album>()
-			.HasMany(a => a.Tracks)
-			.WithOne(t => t.Album)
-			.HasForeignKey(t => new { t.ArtistName, t.AlbumName });
-		modelBuilder.Entity<Album>()
-			.HasOne(a => a.Artist)
-			.WithMany(a => a.Albums)
-			.HasForeignKey(a => a.ArtistName);
-
-		// Track: FilePath is the key
-		modelBuilder.Entity<Track>()
-			.HasKey(t => t.FilePath);
-		modelBuilder.Entity<Track>()
-			.HasOne(t => t.Artist)
-			.WithMany()
-			.HasForeignKey(t => t.ArtistName);
-		modelBuilder.Entity<Track>()
-			.HasOne(t => t.Album)
-			.WithMany(a => a.Tracks)
-			.HasForeignKey(t => new { t.ArtistName, t.AlbumName });
-
-		modelBuilder.Entity<Artist>().HasData(library.Artists);
-		modelBuilder.Entity<Album>().HasData(library.Albums);
-		modelBuilder.Entity<Track>().HasData(library.Tracks);
+	protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) {
+		configurationBuilder.Properties<string>().UseCollation("NOCASE");
 	}
 
+	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+		modelBuilder.Entity<Artist>(artist => {
+			artist.Property(e => e.Name).HasMaxLength(200);
+			artist.HasMany(a => a.Albums).WithOne(a => a.Artist);
+		});
+
+		modelBuilder.Entity<Album>(album => {
+			album.Property(a => a.Name).HasMaxLength(200);
+			album.HasMany(a => a.Tracks).WithOne(t => t.Album); 
+		});
+
+		modelBuilder.Entity<Track>(track => {
+			track.Property(t => t.Title).HasMaxLength(200);
+		});
+
+		modelBuilder.Entity<Artist>().HasData(SeedData.For(SampleData.Artists.AllArtists));
+		modelBuilder.Entity<Album>().HasData(SeedData.For(SampleData.Albums.AllAlbums));
+		modelBuilder.Entity<Track>().HasData(SeedData.For(SampleData.Tracks.AllTracks));
+	}
 }
