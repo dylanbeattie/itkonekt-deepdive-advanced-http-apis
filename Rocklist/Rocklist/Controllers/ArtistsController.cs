@@ -8,7 +8,7 @@ namespace Rocklist.Controllers {
     [Route("api/[controller]")]
     public class ArtistsController(RocklistDbContext db) : ControllerBase {
         [HttpGet]
-        public ActionResult<IEnumerable<Artist>> GetAll()
+        public ActionResult<IEnumerable<Artist>> GetArtists()
 			=> db.Artists
 			.Include(t => t.Albums)
 			.ThenInclude(a => a.Tracks)
@@ -16,7 +16,7 @@ namespace Rocklist.Controllers {
 			.ToList();
 
         [HttpGet("{name}")]
-        public async Task<ActionResult<Track>> GetByFilePathAsync(string name) {
+        public async Task<ActionResult<Track>> GetArtistByName(string name) {
 	        var artist = await db.Artists
 		        .Include(t => t.Albums)
 		        .ThenInclude(a => a.Tracks)

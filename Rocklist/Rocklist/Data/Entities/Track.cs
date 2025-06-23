@@ -1,10 +1,13 @@
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace Rocklist.Data.Entities;
 
-public class Track(Guid id, string title) {
+public class Track(Guid id, string title, string slug) {
 	public Guid Id { get; set; } = id;
-	// public Guid ArtistId { get; set; } = artistId;
+
+	public string Slug { get; set; } = slug;
+
 	public string Title { get; set; } = title;
 	[JsonIgnore]
 	public Artist Artist { get; set; } = null!;
@@ -12,7 +15,7 @@ public class Track(Guid id, string title) {
 	[JsonIgnore]
 	public Album Album { get; set; } = null!;
 
-	public Track(Guid id, string title, Artist artist) : this(id, title) {
+	public Track(Guid id, string title, string slug, Artist artist) : this(id, title, slug) {
 		this.Artist = artist;
 	}
 

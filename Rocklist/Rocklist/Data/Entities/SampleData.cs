@@ -13,7 +13,7 @@ public static class SampleData {
 
 	public static class Albums {
 		private static Album Album(Guid id, Artist artist, string name, int year, string[] trackTitles) =>
-			new(id, artist, name, year, trackTitles.Select(title => new Track(TestGuid.Next(), title, artist)));
+			new(id, artist, name, year, name.Slugify(), trackTitles.Select(title => new Track(TestGuid.Next(), title, title.Slugify(), artist)));
 
 		public static Album AcDcHighwayToHell = Album(TestGuid.Next(), Artists.AcDc, "Highway to Hell", 1979, [
 			"Highway to Hell", "Girls Got Rhythm", "Walk All Over You", "Touch Too Much", "Beating Around the Bush",
@@ -96,8 +96,8 @@ public static class SampleData {
 public static class SeedData {
 	public static IEnumerable<object> For(IEnumerable<Artist> artists) => artists;
 	public static IEnumerable<object> For(IEnumerable<Album> albums) => albums.Select(a =>
-		new { Id = a.Id, Year = a.Year, ArtistId = a.Artist.Id, Name = a.Name });
+		new { Id = a.Id, Year = a.Year, ArtistId = a.Artist.Id, Name = a.Name, Slug = a.Slug });
 
 	public static IEnumerable<object> For(IEnumerable<Track> tracks) => tracks.Select(t =>
-		new { Id = t.Id, ArtistId = t.Artist.Id, AlbumId = t.Album.Id, Title = t.Title });
+		new { Id = t.Id, ArtistId = t.Artist.Id, AlbumId = t.Album.Id, Title = t.Title, Slug = t.Slug });
 }

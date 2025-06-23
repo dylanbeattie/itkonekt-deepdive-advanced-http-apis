@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Rocklist.Data.Entities;
+using static Rocklist.Data.Entities.SampleData;
 
 namespace Rocklist.Data;
 
@@ -16,15 +17,18 @@ public class RocklistDbContext(DbContextOptions<RocklistDbContext> options) : Db
 		modelBuilder.Entity<Artist>(artist => {
 			artist.Property(e => e.Name).HasMaxLength(200);
 			artist.HasMany(a => a.Albums).WithOne(a => a.Artist);
+			artist.HasIndex(a => a.Slug).IsUnique();
 		});
 
 		modelBuilder.Entity<Album>(album => {
 			album.Property(a => a.Name).HasMaxLength(200);
-			album.HasMany(a => a.Tracks).WithOne(t => t.Album); 
+			album.HasMany(a => a.Tracks).WithOne(t => t.Album);
+			album.HasIndex(a => a.Slug);
 		});
 
 		modelBuilder.Entity<Track>(track => {
 			track.Property(t => t.Title).HasMaxLength(200);
+			track.HasIndex(t => t.Slug);
 		});
 
 		modelBuilder.Entity<Artist>().HasData(SeedData.For(SampleData.Artists.AllArtists));
