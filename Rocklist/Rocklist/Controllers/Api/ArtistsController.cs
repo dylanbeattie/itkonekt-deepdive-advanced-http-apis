@@ -12,9 +12,8 @@ namespace Rocklist.Controllers.Api {
 		public async Task<ActionResult<IEnumerable<Artist>>> GetArtists()
 			=> await db.Artists.ToListAsync();
 
-		// GET: api/Artists/5
 		[HttpGet("{slug}")]
-		public async Task<ActionResult<Artist>> GetArtist(string slug) {
+		public async Task<IActionResult> GetArtist(string slug) {
 			var artist = await db.Artists
 				.Include(a => a.Albums)
 				.ThenInclude(album => album.Tracks)
@@ -22,12 +21,42 @@ namespace Rocklist.Controllers.Api {
 				a => a.Slug == slug
 			);
 			if (artist == null) return NotFound();
-			return artist;
+			var result = new {
+				_links = new {
+					self = new { href = $"/api/artists/{slug}" },
+					albums = new { href = $"/api/artists/{slug}/albums" }
+				},
+				name = artist.Name
+			};
+			return Ok(result);
+		}
+
+		[HttpGet("{slug}/albums")]
+		public async Task<IActionResult> GetAlbumsByArtist(string slug) {
+			var artist = await db.Artists
+				.Include(a => a.Albums)
+				.FirstOrDefaultAsync(a => a.Slug == slug);
+			if (artist == null) return NotFound();
+			var result = artist.Albums.Select(album => new {
+				_links = new {
+					self = new {
+						href = $"/artists/{slug}/albums/{album.Slug}"
+					},
+					artist = new {
+						href = $"/artists/{slug}"
+					},
+					tracks = new {
+						href = $"/artists/{slug}/albums/{album.Slug}/tracks"
+					}
+				},
+				name = album.Name
+			}).ToArray();
+			return Ok(result);
 		}
 
 		// PUT: api/Artists/5
-		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-		[HttpPut("{id}")]
+			// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+			[HttpPut("{id}")]
 		public async Task<IActionResult> PutArtist(Guid id, Artist artist) {
 			if (id != artist.Id) {
 				return BadRequest();
