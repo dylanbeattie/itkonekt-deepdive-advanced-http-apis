@@ -47,6 +47,18 @@ namespace Rocklist.Controllers.Api {
 			return Ok(result);
 		}
 
+		// GET: api/artists/acdc/tracks/back-in-black
+		[HttpGet("{artist}/tracks/{slug}")]
+		public async Task<ActionResult<Track>> GetTrackByArtistAndName(string artist, string slug) {
+			var track = await db.Tracks
+				.Include(t => t.Artist)
+				.FirstOrDefaultAsync(
+				t => t.Artist.Slug == artist && t.Slug == slug
+			);
+			if (track == null) return NotFound();
+			return Ok(track);
+		}
+
 		[HttpPut("{slug}")]
 		public async Task<IActionResult> PutArtist(string slug, Artist artist) {
 			var existingArtist = await db.Artists.FirstOrDefaultAsync(a => a.Slug == slug);

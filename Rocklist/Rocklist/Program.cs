@@ -1,10 +1,16 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Rocklist;
 using Rocklist.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => {
+	options.RespectBrowserAcceptHeader = true;
+	options.ReturnHttpNotAcceptable = true;
+	options.OutputFormatters.Insert(0, new TextPlainInputFormatter());
+}).AddXmlSerializerFormatters();
+
 builder.Services.AddOpenApi();
 var sqliteConnection = new SqliteConnection("Data Source=:memory:");
 sqliteConnection.Open();
