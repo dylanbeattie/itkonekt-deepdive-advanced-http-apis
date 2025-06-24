@@ -21,14 +21,7 @@ namespace Rocklist.Controllers.Api {
 				a => a.Slug == slug
 			);
 			if (artist == null) return NotFound();
-			var result = new {
-				_links = new {
-					self = new { href = $"/api/artists/{slug}" },
-					albums = new { href = $"/api/artists/{slug}/albums" }
-				},
-				name = artist.Name
-			};
-			return Ok(result);
+			return Ok(artist.ToResource());
 		}
 
 		[HttpGet("{slug}/albums")]
@@ -54,31 +47,25 @@ namespace Rocklist.Controllers.Api {
 			return Ok(result);
 		}
 
-		// PUT: api/Artists/5
-			// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-			[HttpPut("{id}")]
-		public async Task<IActionResult> PutArtist(Guid id, Artist artist) {
-			if (id != artist.Id) {
-				return BadRequest();
-			}
+		[HttpPut("{slug}")]
+		public async Task<IActionResult> PutArtist(string slug, Artist artist) {
+			var existingArtist = await db.Artists.FirstOrDefaultAsync(a => a.Slug == slug);
+			if (existingArtist != null && artist.Id != default && existingArtist.Id != artist.Id)
+				return Conflict("ID already assigned to a different record");
 
+			// TODO: figure out why EF core is throwing a concurrency exception
+			// when it shouldn't be :)
 			db.Entry(artist).State = EntityState.Modified;
-
 			try {
 				await db.SaveChangesAsync();
+				return Ok(artist.ToResource());
 			} catch (DbUpdateConcurrencyException) {
-				if (!ArtistExists(id)) {
-					return NotFound();
-				} else {
-					throw;
-				}
+				db.Artists.Add(artist);
+				await db.SaveChangesAsync();
+				return Created($"/api/artists/{artist.Slug}", artist.ToResource());
 			}
-
-			return NoContent();
 		}
 
-		// POST: api/Artists
-		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		public async Task<ActionResult<Artist>> PostArtist(Artist artist) {
 			db.Artists.Add(artist);
@@ -87,7 +74,6 @@ namespace Rocklist.Controllers.Api {
 			return CreatedAtAction("GetArtist", new { id = artist.Id }, artist);
 		}
 
-		// DELETE: api/Artists/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteArtist(Guid id) {
 			var artist = await db.Artists.FindAsync(id);
