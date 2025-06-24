@@ -2,7 +2,7 @@ namespace Rocklist.Data.Entities;
 
 public static class SampleData {
 	public static class Artists {
-		public static Artist AcDc = new(TestGuid.Next(), "AC/DC");
+		public static Artist AcDc = new(TestGuid.Next(), "AC/DC", "acdc");
 		public static Artist BonJovi = new(TestGuid.Next(), "Bon Jovi");
 		public static Artist Cinderella = new(TestGuid.Next(), "Cinderella");
 		public static Artist DefLeppard = new(TestGuid.Next(), "Def Leppard");
