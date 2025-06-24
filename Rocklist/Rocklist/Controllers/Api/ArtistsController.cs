@@ -52,18 +52,17 @@ namespace Rocklist.Controllers.Api {
 			var existingArtist = await db.Artists.FirstOrDefaultAsync(a => a.Slug == slug);
 			if (existingArtist != null && artist.Id != default && existingArtist.Id != artist.Id)
 				return Conflict("ID already assigned to a different record");
-
-			// TODO: figure out why EF core is throwing a concurrency exception
-			// when it shouldn't be :)
-			db.Entry(artist).State = EntityState.Modified;
-			try {
-				await db.SaveChangesAsync();
-				return Ok(artist.ToResource());
-			} catch (DbUpdateConcurrencyException) {
+			IActionResult result;
+			if (existingArtist != null) {
+				db.Entry(existingArtist).CurrentValues.SetValues(artist);
+				result = Ok(artist.ToResource());
+			} else {
 				db.Artists.Add(artist);
-				await db.SaveChangesAsync();
-				return Created($"/api/artists/{artist.Slug}", artist.ToResource());
+				result = Created($"/api/artists/{artist.Slug}", artist.ToResource());
 			}
+			await db.SaveChangesAsync();
+			return result;
+
 		}
 
 		[HttpPost]
