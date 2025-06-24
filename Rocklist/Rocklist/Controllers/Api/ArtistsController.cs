@@ -69,25 +69,16 @@ namespace Rocklist.Controllers.Api {
 		public async Task<ActionResult<Artist>> PostArtist(Artist artist) {
 			db.Artists.Add(artist);
 			await db.SaveChangesAsync();
-
 			return CreatedAtAction("GetArtist", new { id = artist.Id }, artist);
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> DeleteArtist(Guid id) {
-			var artist = await db.Artists.FindAsync(id);
-			if (artist == null) {
-				return NotFound();
-			}
-
+		[HttpDelete("{slug}")]
+		public async Task<IActionResult> DeleteArtist(string slug) {
+			var artist = await db.FindArtistBySlug(slug);
+			if (artist == null) return NotFound();
 			db.Artists.Remove(artist);
 			await db.SaveChangesAsync();
-
 			return NoContent();
-		}
-
-		private bool ArtistExists(Guid id) {
-			return db.Artists.Any(e => e.Id == id);
 		}
 	}
 }

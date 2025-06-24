@@ -35,4 +35,7 @@ public class RocklistDbContext(DbContextOptions<RocklistDbContext> options) : Db
 		modelBuilder.Entity<Album>().HasData(SeedData.For(SampleData.Albums.AllAlbums));
 		modelBuilder.Entity<Track>().HasData(SeedData.For(SampleData.Tracks.AllTracks));
 	}
+
+	public async Task<Artist?> FindArtistBySlug(string slug)
+	 => await Artists.FirstOrDefaultAsync(a => a.Slug == slug);
 }
